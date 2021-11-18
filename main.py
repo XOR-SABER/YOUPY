@@ -6,19 +6,99 @@
 # Possible: future Features include.
 # MP3 and WAV support
 # Multple link support
-# History Downloaded to files
 
 # Imports
 import json
+from datetime import datetime
 import os
 from pytube import YouTube
 
-# Declarations:
-Downloads = []
-# Downloads is a list, that keeps the files that you recently download
-Paths = ['../youpy/youtube videos']
-# Default Path included!
+class video:
+    '''Contains all video functions in a single class'''
+    format = ""
+    path = ""
+    link = ""
+    def __init__(self, format):
+        '''intalizes with the format, path, and link.
+        path: checks if path exists 
+        link: checks link and sets'''
+        if paths:
+            i = 1
+            for pat in paths:
+                print(f'{i}: {pat}')
+                i += 1
+        else:
+            # ERROR 1 is a no path error!
+            print("ERROR 1")
+            print("Path error no default path!")
+            pause_feature()
+            return
+        path_num = int(input("Please pick a path number: "))
+        path_num = path_num - 1
+        path = paths[path_num]
+        #save_path = Paths[path]
+        try:
+            os.path.exists(path)
+        except Exception as a:
+            print("ERROR 2")
+            print(f"Path: {path} does not exist!")
+        link = input("Please insert a link: ")
+        try:
+            self.yt = YouTube(link)
+        except Exception as b:
+            print("ERROR 3")
+            print(f"link: {link} does not exist!")
+        self.format = format
+        self.path = path
+        self.link = link
+        self.download()
+    
+    def collect_data(self):
+        '''Colects data from the API wrapper'''
+        data = []
+        data.append("Title:")
+        data.append(self.yt.title)
+        data.append("View count:")
+        data.append(self.yt.views)
+        data.append("URL:")
+        data.append(self.link)
+        data.append("Format:")
+        data.append(self.format)
+        data.append("Timestamp:")
+        now = datetime.now()
+        dt_string = now.strftime("%m/%d/%Y %H:%M:%S")
+        data.append(dt_string)
+        data.append("Path: ")
+        data.append(self.path)
+        return data
 
+    def download(self):
+        '''Downloads the video using the class atrbutes'''
+        print(f"Retreving: {self.yt.title}")
+        print(f'Downloading an {self.format}, from {self.link} to {self.path}: ')
+        try:
+            self.yt.streams.filter(
+                progressive=True, file_extension=self.format).order_by(
+                    'resolution')[-1].download(self.path)
+        except Exception as c:
+            # ERROR 4: pyTube servers dead
+            print("ERROR 4")
+            print(c)
+            return
+        print(f"DONE! Downloading {self.yt.title} in {self.format}")
+        print(f"from {self.link} to {self.path}")
+        downloads.append(self.collect_data())
+        saved['downloads'] = downloads
+        with open(path_to_json + file_name, "w") as json_file:
+            json.dump(saved, json_file, indent=4)
+        pause_feature()
+
+
+# Declarations:
+paths = []
+downloads = []
+path_to_json = './youtube_videos/save_data/'
+saved = {}
 line = "+=========================================+"
 # Line shorthand to make lines in terminal
 
@@ -26,12 +106,15 @@ line = "+=========================================+"
 
 
 def pause_feature():
+    '''Pauses the menu using input.'''
     input("Press Enter to countinue.... ")
 
 # Cleans input by getting rid of periods and spaces
 
 
 def clean_input(user_input):
+    '''Cleans the input by getting,
+    rid of any undesired characters.'''
     str(user_input)
     if(user_input[0] == '.'):
         ch = '.'
@@ -59,12 +142,13 @@ def mainMenu():
 # PATH menu UI
 
 
+
 def pathMenu(cleaned_input):
     # Plus addtional input checking
     if(cleaned_input == "SEE"):
-        if Paths:
+        if paths:
             i = 1
-            for pat in Paths:
+            for pat in paths:
                 print(f'{i}: {pat}')
                 i += 1
             pause_feature()
@@ -84,82 +168,57 @@ def pathMenu(cleaned_input):
             pause_feature()
         else:
             print("Path exists~!")
-            Paths.append(user_path)
+            paths.append(user_path)
+            saved['paths'] = paths
+            with open(path_to_json + file_name, "w") as json_file:
+                json.dump(saved, json_file, indent=4)
             pause_feature()
 
 
 def check_input(filtered_input):
+    
     # Input Checker! I wish Python, had Switch statements!
-    if(filtered_input == "DOWNLOAD"):
-        downloadUI('mp4')
-    elif(filtered_input == "MP3"):
-        downloadUI('mp3')
-    elif(filtered_input == "RECENT"):
+    if(filtered_input == "DOWNLOAD" or filtered_input == "D"):
+        video('mp4')
+    # elif(filtered_input == "MP3"):
+    #     downloadUI('mp3')
+    elif(filtered_input == "RECENT" or filtered_input == "R"):
         recentDownloads()
-    elif(filtered_input == "EXIT"):
+    elif(filtered_input == "EXIT" or filtered_input == "E"):
         return True
-    elif(filtered_input == "PATH"):
+    elif(filtered_input == "PATH" or filtered_input == "P"):
         print("Type 'add' to add a path\nType 'see' to see all saved paths: ")
         user_input = input(": ").upper()
         pathMenu(clean_input(user_input))
-    elif(filtered_input == "CLS" or filtered_input == "CLEAR"):
+    elif(filtered_input == "CLS" or filtered_input == "CLEAR" or filtered_input == "C"):
         os.system('cls||clear')
     else:
         print("Invaild input!")
 
 
 def recentDownloads():
-    if Downloads:
+    if downloads:
         os.system('cls||clear')
-        print(f'{line}')
         i = 1
-        for download in Downloads:
-            print(f'{i}. {download}')
+        for download in downloads:
+            print(f'{line}')
+            print(f'{i}.')
             i += 1
-        pause_feature()
+            for x in range(0,12,2):
+                print(f'{download[x]} {download[x+1]}')
+            pause_feature()
+            os.system('cls||clear')
     else:
         print("No recent downloads")
         pause_feature()
 
 
-def downloadUI(form):
-    link = input("Please insert a link: ")
-    if Paths:
-        i = 1
-        for pat in Paths:
-            print(f'{i}: {pat}')
-            i += 1
-    else:
-        # ERROR 1 is a no path error!
-        print("ERROR 1")
-        pause_feature()
-        return
-    path = int(input("Please pick a path number: "))
-    path = path - 1
-    save_path = Paths[path]
-    download(link, form, save_path)
 
-
-def download(link, format, save_path):
-    print(f'Downloading an {format}, from {link} to {save_path}: ')
-    print(format)
-    try:
-        yt = YouTube(link)
-    except YouTube.DoesNotExist:
-        # Video doesn't exist
-        print("ERROR 2")
-        return
-    try:
-        yt.streams.filter(
-            progressive=True, file_extension=format).order_by(
-                'resolution')[-1].download(save_path)
-    except YouTube.DoesNotExist:
-        # ERROR 4: pyTube servers dead
-        print("ERROR 4")
-    print(f"DONE! Downloading an {format}, from {link} to {save_path}")
-    Downloads.append(link)
-    pause_feature()
-
+for file_name in [file for file in os.listdir(path_to_json) if file.endswith('.json')]:
+  with open(path_to_json + file_name, "r") as json_file:
+    saved = json.load(json_file)
+paths = saved['paths']
+downloads = saved['downloads']
 
 while(True):
     user_input = mainMenu()
