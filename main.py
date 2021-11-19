@@ -1,12 +1,3 @@
-# You-py!
-# Made by Alexander Betancourt
-# © 10/28/2021 12:00PM
-# Descripton: Python terminal based youtube downloader program!
-
-# Possible: future Features include.
-# MP3 and WAV support
-# Multple link support
-
 # Imports
 import json
 from datetime import datetime
@@ -18,10 +9,22 @@ class video:
     format = ""
     path = ""
     link = ""
-    def __init__(self, format):
+    yt = ""
+    def __init__(self):
         '''intalizes with the format, path, and link.
         path: checks if path exists 
         link: checks link and sets'''
+        print("Which format do you need?")
+        print("Examples: MP3, MP4, WAV, WEBM")
+        user_format = clean_input(input(": ").lower())
+        if(user_format == "mp3" or user_format == "mp4" 
+            or user_format == "webm" or user_format == "wav"):
+            print("vaild format")
+        else:
+            print("ERROR 1")
+            print(f"{user_format} is a Invaild format")
+            pause_feature()
+            return
         if paths:
             i = 1
             for pat in paths:
@@ -29,32 +32,41 @@ class video:
                 i += 1
         else:
             # ERROR 1 is a no path error!
-            print("ERROR 1")
+            print("ERROR 2")
             print("Path error no default path!")
             pause_feature()
             return
         path_num = int(input("Please pick a path number: "))
         path_num = path_num - 1
         path = paths[path_num]
-        #save_path = Paths[path]
         try:
             os.path.exists(path)
         except Exception as a:
-            print("ERROR 2")
-            print(f"Path: {path} does not exist!")
-        link = input("Please insert a link: ")
-        try:
-            self.yt = YouTube(link)
-        except Exception as b:
             print("ERROR 3")
-            print(f"link: {link} does not exist!")
-        self.format = format
+            print(f"Path: {path} does not exist!")
+            pause_feature()
+            return
+        user_link = str(input("Please insert a link: "))
+        print(user_link)
+        try:
+            self.yt = YouTube(user_link)
+        except Exception as b:
+            print("ERROR 4")
+            print(b)
+            print(f"link: {user_link} does not exist!")
+            pause_feature()
+            return
+        self.format = user_format
         self.path = path
-        self.link = link
+        self.link = user_link
         self.download()
     
-    def collect_data(self):
-        '''Colects data from the API wrapper'''
+    def collect_data(self, success):
+        '''Colects data from the API wrapper, 
+        Including but not limited to.
+        Title, view count, URL, format,
+        timestamp, and path.
+        Returns list of all information'''
         data = []
         data.append("Title:")
         data.append(self.yt.title)
@@ -70,27 +82,37 @@ class video:
         data.append(dt_string)
         data.append("Path: ")
         data.append(self.path)
+        data.append("Succesful download: ")
+        data.append(success)
         return data
 
     def download(self):
+        sucessful = False
         '''Downloads the video using the class atrbutes'''
         print(f"Retreving: {self.yt.title}")
         print(f'Downloading an {self.format}, from {self.link} to {self.path}: ')
-        try:
-            self.yt.streams.filter(
-                progressive=True, file_extension=self.format).order_by(
-                    'resolution')[-1].download(self.path)
-        except Exception as c:
-            # ERROR 4: pyTube servers dead
-            print("ERROR 4")
-            print(c)
-            return
+        if(self.format == "mp4" or self.format == "webm"):
+            try:
+                self.yt.streams.filter(
+                    progressive=True, file_extension=self.format).order_by(
+                        'resolution')[-1].download(self.path)
+            except Exception as e:
+                # ERROR 4: Youtube services dead
+                print("ERROR 5")
+                return
+        elif(self.format == "mp3" or self.format == "wav"):
+            out_file = self.yt.streams.filter(
+                only_audio=True).first().download(self.path)
+            base, ext = os.path.splitext(out_file)
+            new_file = base + f'.{self.format}'
+            os.rename(out_file, new_file)
+            
+        sucessful = True
         print(f"DONE! Downloading {self.yt.title} in {self.format}")
         print(f"from {self.link} to {self.path}")
-        downloads.append(self.collect_data())
+        downloads.append(self.collect_data(sucessful))
         saved['downloads'] = downloads
-        with open(path_to_json + file_name, "w") as json_file:
-            json.dump(saved, json_file, indent=4)
+        save_data()
         pause_feature()
 
 
@@ -102,14 +124,15 @@ saved = {}
 line = "+=========================================+"
 # Line shorthand to make lines in terminal
 
-# Pause for people to read the text!
 
+def save_data():
+    '''Save the data in the current dictionarys and lists to the JSON'''
+    with open(path_to_json + file_name, "w") as json_file:
+        json.dump(saved, json_file, indent=4)
 
 def pause_feature():
     '''Pauses the menu using input.'''
     input("Press Enter to countinue.... ")
-
-# Cleans input by getting rid of periods and spaces
 
 
 def clean_input(user_input):
@@ -124,11 +147,10 @@ def clean_input(user_input):
         user_input = user_input.lstrip(ch)
     return user_input
 
-# Main menu UI
 
-
-def mainMenu():
-    # Returns Cleanded String with filetype
+def main_menu():
+    '''Displays main menu UI,
+    returns Cleanded String with filetype.'''
     os.system('cls||clear')
     print(f'{line}')
     print("           Welcome to you-py!")
@@ -139,12 +161,10 @@ def mainMenu():
     user_input = input(": ").upper()
     return clean_input(user_input)
 
-# PATH menu UI
-
-
 
 def pathMenu(cleaned_input):
-    # Plus addtional input checking
+    '''PATH menu UI,
+    plus additional input checking'''
     if(cleaned_input == "SEE"):
         if paths:
             i = 1
@@ -170,20 +190,16 @@ def pathMenu(cleaned_input):
             print("Path exists~!")
             paths.append(user_path)
             saved['paths'] = paths
-            with open(path_to_json + file_name, "w") as json_file:
-                json.dump(saved, json_file, indent=4)
+            save_data()
             pause_feature()
 
 
 def check_input(filtered_input):
-    
-    # Input Checker! I wish Python, had Switch statements!
+    '''Simple input checker for main menu selections.'''
     if(filtered_input == "DOWNLOAD" or filtered_input == "D"):
-        video('mp4')
-    # elif(filtered_input == "MP3"):
-    #     downloadUI('mp3')
+        video()
     elif(filtered_input == "RECENT" or filtered_input == "R"):
-        recentDownloads()
+        recent_downloads()
     elif(filtered_input == "EXIT" or filtered_input == "E"):
         return True
     elif(filtered_input == "PATH" or filtered_input == "P"):
@@ -196,7 +212,9 @@ def check_input(filtered_input):
         print("Invaild input!")
 
 
-def recentDownloads():
+def recent_downloads():
+    '''Recent Downloads reads 
+    Downloads from the Dictionary'''
     if downloads:
         os.system('cls||clear')
         i = 1
@@ -204,7 +222,7 @@ def recentDownloads():
             print(f'{line}')
             print(f'{i}.')
             i += 1
-            for x in range(0,12,2):
+            for x in range(0,14,2):
                 print(f'{download[x]} {download[x+1]}')
             pause_feature()
             os.system('cls||clear')
@@ -213,14 +231,16 @@ def recentDownloads():
         pause_feature()
 
 
-
+#Start of program
+#Loads the JSON
 for file_name in [file for file in os.listdir(path_to_json) if file.endswith('.json')]:
   with open(path_to_json + file_name, "r") as json_file:
     saved = json.load(json_file)
 paths = saved['paths']
 downloads = saved['downloads']
 
+
 while(True):
-    user_input = mainMenu()
+    user_input = main_menu()
     if(check_input(user_input)):
         break

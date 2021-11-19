@@ -1,7 +1,6 @@
 {
     "paths": [
-        "../youpy/youtube_videos",
-        "C:\\Users\\thelm\\Documents\\tester\\"
+        "../youpy/youtube_videos"
     ],
     "downloads": [
         [
@@ -15,8 +14,26 @@
             "mp4",
             "Timestamp:",
             "11/18/2021 07:42:21",
+            "Saved to Path:",
+            "C:\\Users\\thelm\\Documents\\tester\\",
+            "Successful download:",
+            true
+        ],
+        [
+            "Title:",
+            "The Simpsons - Homer's Pearl O's Dream",
+            "View count:",
+            15232,
+            "URL:",
+            "https://www.youtube.com/watch?v=sNhqgKLCTwk&ab_channel=AreaEightyNine",
+            "Format:",
+            "mp4",
+            "Timestamp:",
+            "11/18/2021 18:55:34",
             "Path: ",
-            "C:\\Users\\thelm\\Documents\\tester\\"
+            "../youpy/youtube_videos",
+            "Succesful download: ",
+            true
         ]
     ]
 }
